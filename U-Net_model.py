@@ -1,4 +1,4 @@
-from keras.layers import Conv2D,Activation,Input,Dropout,Reshape,MaxPooling2D,UpSampling2D,Conv2DTranspose,Concatenate
+from keras.layers import Conv2D,Activation,Input,Dropout,Reshape,MaxPooling2D,UpSampling2D,Conv2DTranspose,Concatenate,flatten
 from keras.layers.normalization import BatchNormalization 
 from keras.models import Model,Sequential
 from keras.callbacks import ModelCheckpoint
@@ -9,7 +9,7 @@ from keras import backend as K
 import numpy as np
 
 
-def UNet(n_classes=4, im_sz=240, n_channels=4, n_filters_start=64, growth_factor=2):
+def UNet(n_classes=5, im_sz=240, n_channels=4, n_filters_start=64, growth_factor=2):
     
     droprate=0.2
     n_filters = n_filters_start
@@ -77,3 +77,53 @@ def UNet(n_classes=4, im_sz=240, n_channels=4, n_filters_start=64, growth_factor
     model = Model(inputs=inputs, outputs=conv10)
 
     return model
+
+# Dice loss for each slice and then calculating the mean dice score
+
+def dice_coef_0(y_true, y_pred,smooth=0.000001):
+    y_true_f = K.flatten(y_true[:,:,:,0])
+    y_pred_f = K.flatten(y_pred[:,:,:,0])
+    intersection = K.sum(y_true_f * y_pred_f)
+    return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+
+def dice_coef_1(y_true, y_pred,smooth=0.000001):
+    y_true_f = K.flatten(y_true[:,:,:,1])
+    y_pred_f = K.flatten(y_pred[:,:,:,1])
+    intersection = K.sum(y_true_f * y_pred_f)
+    return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+
+def dice_coef_2(y_true, y_pred,smooth=0.000001):
+    y_true_f = K.flatten(y_true[:,:,:,2])
+    y_pred_f = K.flatten(y_pred[:,:,:,2])
+    intersection = K.sum(y_true_f * y_pred_f)
+    return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+
+def dice_coef_3(y_true, y_pred,smooth=0.000001):
+    y_true_f = K.flatten(y_true[:,:,:,3])
+    y_pred_f = K.flatten(y_pred[:,:,:,3])
+    intersection = K.sum(y_true_f * y_pred_f)
+    return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+
+def dice_coef_4(y_true, y_pred,smooth=0.000001):
+    y_true_f = K.flatten(y_true[:,:,:,4])
+    y_pred_f = K.flatten(y_pred[:,:,:,4])
+    intersection = K.sum(y_true_f * y_pred_f)
+    return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+
+def dice_score(y_true, y_pred):
+    d0 = dice_coef_0(y_true, y_pred,smooth=0.000001)
+    d1 = dice_coef_1(y_true, y_pred,smooth=0.000001)
+    d2 = dice_coef_2(y_true, y_pred,smooth=0.000001)
+    #d3 = dice_coef_3(y_true, y_pred,smooth=0.000001)
+    d4 = dice_coef_4(y_true, y_pred,smooth=0.000001)
+
+    dice_mean = (d0+d1+d2+d4)/4
+    return dice_mean
+
+def dice_loss(y_true, y_pred):
+    return 1-dice_score(y_true, y_pred)
+
+model = UNet()
+model.compile(optimizer=Adam(lr=0.0001), loss= dice_loss,  
+              metrics= [dice_coef_0, dice_coef_1, dice_coef_2, dice_coef_4, dice_score])
+model.summary()
