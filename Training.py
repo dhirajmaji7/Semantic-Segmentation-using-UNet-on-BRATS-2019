@@ -1,3 +1,7 @@
+# You can use other dice loss functions also or weighted categorical crossentropy
+# Adam is a very good optimizer but you can also use SGD
+# Don't use accuracy as a metric as it gives misleading results due to the class imbalance problem, use dice coefficient, or IOU
+
 model = UNet()
 model.compile(optimizer=Adam(lr=0.0001), loss= dice_loss,  
               metrics= [dice_coef_0, dice_coef_1, dice_coef_2, dice_coef_4, dice_score])
