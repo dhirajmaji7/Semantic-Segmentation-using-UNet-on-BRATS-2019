@@ -1,10 +1,10 @@
 results = model.evaluate(X_test, Y_test, batch_size=32)
 
 print('test loss : ', results[0])
-print('dice_score_0 : ', results[1])
-print('dice_score_1 : ', results[2])
-print('dice_score_2 : ', results[3])
-print('dice_score_4 : ', results[4])
+print('dice_score_non-tumor : ', results[1])
+print('dice_score_necrosis : ', results[2])
+print('dice_score_edema : ', results[3])
+print('dice_score_ET : ', results[4])
 print('dice_score_mean : ', results[5])
 
 
