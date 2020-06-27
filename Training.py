@@ -12,24 +12,14 @@ print(model.metrics_names)
 # Checkpoint 
 # assign appropriate directory in the checkpoint filepath
 filepath="Unet_checkpoints/weights-improvement-{epoch:02d}-{dice_score:.3f}.h5"
-checkpoint = ModelCheckpoint(filepath, monitor= dice_score, verbose=1, save_best_only=True, mode='max')
+checkpoint = ModelCheckpoint(filepath, monitor= val_dice_score, verbose=1, save_best_only=True, mode='max')
 callbacks_list = [checkpoint]
 
 batch_size = 32 #lower the batch size if you run out of memory
 epochs = 100
+ 
+model.fit_generator(train_generator,
+	                  validation_data=(X_valid, Y_valid),
+	                  steps_per_epoch=len(X_train) // batch_size,
+	                  epochs=epochs, verbose=1, shuffle=True)
 
-model_train = model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, shuffle=True, 
-                        callbacks=callbacks_list, verbose=1, validation_data=(X_valid, Y_valid) )
-
-
-# To plot the Graph of training loss vs validation loss
-
-loss = model_train.history['loss']
-val_loss = model_train.history['val_loss']
-epochs = range(100)
-plt.figure()
-plt.plot(epochs, loss, 'g', label='Training loss')
-plt.plot(epochs, val_loss, 'b', label='Validation loss')
-plt.title('Training and validation loss')
-plt.legend()
-plt.show()
